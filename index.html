@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quran Explainer</title>
+    
+    <!-- Google Font Import: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Marked.js for Markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <style>
+        /* --- Root Variables for Color Palette --- */
+        :root {
+            --bg-dark: #1a202c;
+            --card-bg: #2d3748;
+            --text-primary: #edf2f7;
+            --text-secondary: #a0aec0;
+            --accent-color: #d69e2e;
+            --border-color: #4a5568;
+            --skeleton-color: #4a5568;
+        }
+
+        /* --- General Body and Layout Styling --- */
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background-color: var(--bg-dark);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        /* --- Main Container Card --- */
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* --- Typography Hierarchy --- */
+        h1 {
+            text-align: center;
+            color: var(--text-primary);
+            font-weight: 700;
+            font-size: 2.25rem;
+            margin: 0;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            margin-bottom: 40px;
+        }
+
+        /* --- Form and Input Styling --- */
+        form {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        input[type="number"] {
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 12px 15px;
+            font-size: 16px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        input[type="number"]::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.7;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(214, 158, 46, 0.2);
+        }
+
+        /* Remove number input spinners */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+        
+        button {
+            background-color: var(--accent-color);
+            color: #1a202c;
+            font-weight: 500;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 12px 25px;
+            transition: transform 0.2s, background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #e5b342;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(214, 158, 46, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        /* --- New Skeleton Loader --- */
+        .loader {
+            display: none; /* Controlled by JS */
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--card-bg);
+        }
+
+        .skeleton {
+            background-color: var(--skeleton-color);
+            border-radius: 4px;
+            animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        .skeleton-title { height: 28px; width: 40%; margin-bottom: 20px; }
+        .skeleton-line { height: 16px; margin-bottom: 12px; }
+        .skeleton-line-1 { width: 90%; }
+        .skeleton-line-2 { width: 100%; }
+        .skeleton-line-3 { width: 75%; }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        /* --- Response Container and Content Styling --- */
+        #response-container {
+            margin-top: 20px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        /* Style for when JS makes the content visible */
+        #response-container:not(:empty) {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #response-container h1,
+        #response-container h2,
+        #response-container h3,
+        #response-container h4 {
+            color: var(--accent-color);
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        #response-container h3 {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 8px;
+        }
+
+        #response-container p {
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+            line-height: 1.7;
+        }
+        
+        #response-container blockquote {
+            margin: 20px 0;
+            padding: 15px 20px;
+            background-color: var(--bg-dark);
+            border-left: 4px solid var(--accent-color);
+            font-style: italic;
+            color: var(--text-primary);
+            border-radius: 4px;
+        }
+
+        #response-container ul,
+        #response-container ol {
+            color: var(--text-secondary);
+            margin: 15px 0;
+            padding-left: 25px;
+        }
+
+        #response-container li {
+            margin-bottom: 8px;
+            line-height: 1.7;
+        }
+
+        #response-container strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        #response-container em {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        #response-container code {
+            background-color: var(--bg-dark);
+            color: var(--accent-color);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            font-family: 'Courier New', monospace;
+        }
+
+        #response-container pre {
+            background-color: var(--bg-dark);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+            margin: 15px 0;
+        }
+
+        #response-container pre code {
+            background-color: transparent;
+            padding: 0;
+            color: var(--text-primary);
+        }
+
+        #response-container hr {
+            border: none;
+            border-top: 1px solid var(--border-color);
+            margin: 25px 0;
+        }
+
+        #response-container .error {
+            color: #e53e3e;
+            font-weight: bold;
+            background-color: rgba(229, 62, 62, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #e53e3e;
+        }
+        
+        /* --- Footer --- */
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .disclaimer {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* --- Responsive Design --- */
+        @media (max-width: 600px) {
+            body { 
+                padding: 10px; 
+            }
+            .container { 
+                padding: 25px 20px; 
+            }
+            h1 { 
+                font-size: 1.75rem; 
+            }
+            .subtitle {
+                font-size: 0.9rem;
+            }
+            form {
+                grid-template-columns: 1fr; /* Stack inputs and button */
+            }
+            button {
+                width: 100%;
+            }
+            #response-container h1,
+            #response-container h2,
+            #response-container h3,
+            #response-container h4 {
+                font-size: 1.2rem;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    
+    <main class="container">
+        <h1>Quran Explainer</h1>
+        <p class="subtitle">Enter a Surah and Ayah to receive a multi-source scholarly explanation.</p>
+
+        <form id="tafsir-form">
+            <input type="number" id="surah" name="surah" placeholder="Surah No." required>
+            <input type="number" id="ayah" name="ayah" placeholder="Ayah No." required>
+            <button type="submit">Get Explanation</button>
+        </form>
+
+        <!-- The new skeleton loader, still controlled by id="loader" -->
+        <div class="loader" id="loader">
+            <div class="skeleton skeleton-title"></div>
+            <div class="skeleton skeleton-line skeleton-line-1"></div>
+            <div class="skeleton skeleton-line skeleton-line-2"></div>
+            <div class="skeleton skeleton-line skeleton-line-3"></div>
+        </div>
+
+        <!-- The response container, which will be populated by JS -->
+        <div id="response-container"></div>
+        
+        <footer>
+            <p class="disclaimer">This is an AI-powered tool for study and reference. Always consult with a qualified scholar for definitive religious guidance.
+                <br>GitHub repo <a href="https://github.com/spa5k/tafsir_api/tree/main">tafsir_api</a> is used to get the tasfir from different sources.
+            </p>
+        </footer>
+    </main>
+
+    <script>
+        // THIS SCRIPT BLOCK IS PRESERVED EXACTLY AS REQUIRED
+        document.getElementById('tafsir-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const surah = document.getElementById('surah').value;
+            const ayah = document.getElementById('ayah').value;
+            const responseContainer = document.getElementById('response-container');
+            const loader = document.getElementById('loader');
+            
+            // Clear previous response and show loader
+            responseContainer.innerHTML = '';
+            // We remove the transition classes to reset the fade-in state
+            responseContainer.style.opacity = '0'; 
+            responseContainer.style.transform = 'translateY(10px)';
+            loader.style.display = 'block';
+
+            try {
+                const response = await fetch('/explain', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ surah: surah, ayah: ayah })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'An unknown error occurred.');
+                }
+                const data = await response.json();
+                responseContainer.innerHTML = marked.parse(data.explanation);
+                
+            } catch (error) {
+                responseContainer.innerHTML = `<p class="error">Error: ${error.message}</p>`;
+            } finally {
+                loader.style.display = 'none';
+                // Trigger the fade-in animation for the new content
+                responseContainer.style.opacity = '1';
+                responseContainer.style.transform = 'translateY(0)';
+            }
+        });
+    </script>
+</body>
+</html>
