@@ -7,7 +7,8 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
-app = Flask(__name__)
+# Tell Flask that the template folder is the current directory ('.')
+app = Flask(__name__, template_folder='.')
 
 # --- Configuration ---
 try:
@@ -141,6 +142,9 @@ def explain_ayah():
     except Exception as e:
         print(f"Error calling Groq API: {e}")
         return jsonify({"error": f"Failed to get explanation from the language model: {e}"}), 500
+
+if __name__ == '__main__':
+    app.run(debug=True)
 
 
 #llama-3.3-70b-versatile
